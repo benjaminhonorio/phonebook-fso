@@ -35,7 +35,15 @@ const generateId = () => {
 
 app.use(express.json());
 
-app.use(morgan("tiny"));
+// Don't do this.. just for demo purposes
+// This middleware uses morgan to log the data sent with POST request
+morgan.token("body", (req, res) =>
+  Object.keys(req.body).length ? JSON.stringify(req.body) : null
+);
+app.use(
+  morgan(":method :url :status :res[content-length] - :response-time ms :body")
+);
+//
 
 app.get("/info", (req, res) => {
   res.send(content);
@@ -72,6 +80,7 @@ app.post("/api/persons", (req, res) => {
   };
   persons = persons.concat(person);
   res.json(person);
+  res.status(201);
 });
 
 app.delete("/api/persons/:id", (req, res) => {
@@ -79,12 +88,6 @@ app.delete("/api/persons/:id", (req, res) => {
   persons = persons.filter((person) => person.id !== id);
   res.status(204).end();
 });
-
-// const unknownEndpoint = (request, response) => {
-//   response.status(404).send({ error: "unknown endpoint" });
-// };
-
-// app.use(unknownEndpoint);
 
 const PORT = 3001;
 
