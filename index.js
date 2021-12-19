@@ -1,4 +1,5 @@
 const express = require("express");
+const morgan = require("morgan");
 
 const app = express();
 
@@ -33,6 +34,8 @@ const generateId = () => {
 };
 
 app.use(express.json());
+
+app.use(morgan("tiny"));
 
 app.get("/info", (req, res) => {
   res.send(content);
@@ -76,6 +79,12 @@ app.delete("/api/persons/:id", (req, res) => {
   persons = persons.filter((person) => person.id !== id);
   res.status(204).end();
 });
+
+// const unknownEndpoint = (request, response) => {
+//   response.status(404).send({ error: "unknown endpoint" });
+// };
+
+// app.use(unknownEndpoint);
 
 const PORT = 3001;
 
