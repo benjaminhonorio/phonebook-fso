@@ -7,5 +7,6 @@ This project is an exercise from Full Stack Open 2021 Part 3
 - React
 - NodeJs
 - Express
+- MongoDB
 
 Watch live [demo](https://young-shelf-17067.herokuapp.com/)
