@@ -31,8 +31,16 @@ app.get("/api/persons", (req, res) => {
   Person.find({}).then((people) => res.json(people));
 });
 
-app.get("/api/persons/:id", (req, res) => {
-  Person.findById(req.params.id).then((person) => res.json(person));
+app.get("/api/persons/:id", (req, res, next) => {
+  Person.findById(req.params.id)
+    .then((person) => {
+      if (person) {
+        res.json(person);
+      } else {
+        res.status(404).end();
+      }
+    })
+    .catch((err) => next(err));
 });
 
 app.post("/api/persons", (req, res) => {
@@ -66,6 +74,12 @@ app.delete("/api/persons/:id", (req, res, next) => {
     })
     .catch((error) => next(error));
 });
+
+const unknownEndpoint = (req, res) => {
+  res.status(404).send({ error: "unknown endpoint" });
+};
+
+app.use(unknownEndpoint);
 
 const errorHandler = (err, req, res, next) => {
   console.error(err);
