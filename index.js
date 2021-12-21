@@ -6,9 +6,6 @@ const cors = require("cors");
 const Person = require("./models/person");
 const app = express();
 
-// const content = `<p>Phonebook has info for ${persons.length} people </p>
-// <p>${new Date()}</p>`;
-
 app.use(cors());
 app.use(express.static("build"));
 app.use(express.json());
@@ -21,11 +18,17 @@ morgan.token("body", (req, res) =>
 app.use(
   morgan(":method :url :status :res[content-length] - :response-time ms :body")
 );
-//
 
-// app.get("/info", (req, res) => {
-//   res.send(content);
-// });
+app.get("/info", (req, res, next) => {
+  Person.find({})
+    .count()
+    .then((count) => {
+      const content = `<p>Phonebook has info for ${count} people </p>
+      <p>${new Date()}</p>`;
+      res.send(content);
+    })
+    .catch((err) => next(err));
+});
 
 app.get("/api/persons", (req, res) => {
   Person.find({}).then((people) => res.json(people));
@@ -39,6 +42,19 @@ app.get("/api/persons/:id", (req, res, next) => {
       } else {
         res.status(404).end();
       }
+    })
+    .catch((err) => next(err));
+});
+
+app.put("/api/persons/:id", (req, res, next) => {
+  const body = req.body;
+  const person = {
+    name: body.name,
+    number: body.number,
+  };
+  Person.findByIdAndUpdate(req.params.id, person, { new: true })
+    .then((updatedPerson) => {
+      res.json(updatedPerson);
     })
     .catch((err) => next(err));
 });
