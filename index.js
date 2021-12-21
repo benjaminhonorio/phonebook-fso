@@ -59,11 +59,23 @@ app.post("/api/persons", (req, res) => {
   });
 });
 
-// app.delete("/api/persons/:id", (req, res) => {
-//   const id = Number(req.params.id);
-//   persons = persons.filter((person) => person.id !== id);
-//   res.status(204).end();
-// });
+app.delete("/api/persons/:id", (req, res, next) => {
+  Person.findByIdAndRemove(req.params.id)
+    .then((result) => {
+      res.status(204).end();
+    })
+    .catch((error) => next(error));
+});
+
+const errorHandler = (err, req, res, next) => {
+  console.error(err);
+  if (err.name === "CastError") {
+    return res.status(404).send({ error: "malformatted id" });
+  }
+  next(err);
+};
+
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 3001;
 
