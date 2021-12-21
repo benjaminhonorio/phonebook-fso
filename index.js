@@ -46,41 +46,19 @@ app.get("/api/persons/:id", (req, res, next) => {
     .catch((err) => next(err));
 });
 
-app.put("/api/persons/:id", (req, res, next) => {
+app.post("/api/persons", (req, res, next) => {
   const body = req.body;
-  const person = {
-    name: body.name,
-    number: body.number,
-  };
-  Person.findByIdAndUpdate(req.params.id, person, { new: true })
-    .then((updatedPerson) => {
-      res.json(updatedPerson);
-    })
-    .catch((err) => next(err));
-});
 
-app.post("/api/persons", (req, res) => {
-  const body = req.body;
-  if (!body.name || !body.number) {
-    return res.status(400).json({
-      error: "some content is missing",
-    });
-  }
-  // else {
-  //   let person = persons.find((person) => person.name === body.name);
-  //   if (person) {
-  //     return res.status(400).json({
-  //       error: "name must be unique",
-  //     });
-  //   }
-  // }
   const person = new Person({
     name: body.name,
     number: body.number,
   });
-  person.save().then((savedPerson) => {
-    res.json(savedPerson);
-  });
+  person
+    .save()
+    .then((savedPerson) => {
+      res.json(savedPerson);
+    })
+    .catch((err) => next(err));
 });
 
 app.delete("/api/persons/:id", (req, res, next) => {
@@ -91,6 +69,22 @@ app.delete("/api/persons/:id", (req, res, next) => {
     .catch((error) => next(error));
 });
 
+app.put("/api/persons/:id", (req, res, next) => {
+  const body = req.body;
+  const person = {
+    name: body.name,
+    number: body.number,
+  };
+  Person.findByIdAndUpdate(req.params.id, person, {
+    runValidators: true,
+    new: true,
+  })
+    .then((updatedPerson) => {
+      res.json(updatedPerson);
+    })
+    .catch((err) => next(err));
+});
+
 const unknownEndpoint = (req, res) => {
   res.status(404).send({ error: "unknown endpoint" });
 };
@@ -98,9 +92,10 @@ const unknownEndpoint = (req, res) => {
 app.use(unknownEndpoint);
 
 const errorHandler = (err, req, res, next) => {
-  console.error(err);
   if (err.name === "CastError") {
-    return res.status(404).send({ error: "malformatted id" });
+    return res.status(400).send({ error: "malformatted id" });
+  } else if (err.name === "ValidationError") {
+    return res.status(400).send({ error: err.message });
   }
   next(err);
 };

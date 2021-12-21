@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-
+const uniqueValidator = require("mongoose-unique-validator");
 const url = process.env.MONGODB_URI;
 
 console.log("Connecting to ", url);
@@ -14,9 +14,30 @@ mongoose
   });
 
 const personSchema = new mongoose.Schema({
-  name: String,
-  number: String,
+  name: {
+    type: String,
+    required: true,
+    minLength: 3,
+    unique: true,
+  },
+  number: {
+    type: String,
+    validate: {
+      validator: function (v) {
+        const arr = v.match(/(\d+)/g);
+        if (arr.length) {
+          return arr.reduce((acc, el) => acc.concat(el), "").length >= 8;
+        }
+        return false;
+      },
+      message: (props) =>
+        `${props.value} is not a valid phone number! There should be at least 8 digits`,
+    },
+    required: true,
+  },
 });
+
+personSchema.plugin(uniqueValidator);
 
 personSchema.set("toJSON", {
   transform: (document, returnedObject) => {
